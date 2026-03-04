@@ -1,24 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Careloop - Casual Healthcare Services</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+    font-family:"Times New Roman", Times, serif !important;
+    box-sizing:border-box;
+}
+body{
+    margin:0;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    min-height:100vh;
+}
+header{
+    background:white;
+    padding:15px 40px;
+    position:sticky;
+    top:0;
+}
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+nav ul{
+    list-style:none;
+    display:flex;
+    gap:20px;
+}
+nav a{
+    text-decoration:none;
+    font-weight:bold;
+    color:#667eea;
+}
+section{
+    padding:60px 20px;
+    text-align:center;
+    color:white;
+}
+.share-section{
+    background:white;
+    padding:40px;
+    border-radius:20px;
+    max-width:900px;
+    margin:40px auto;
+    color:black;
+}
+#sharePrice{
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+footer{
+    background:black;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+</style>
+</head>
+<body>
+
+<header>
+<nav>
+<div><b>Careloop</b></div>
+<ul>
+<li><a href="#home">ホーム</a></li>
+<li><a href="#services">サービス</a></li>
+<li><a href="#contact">お問い合わせ</a></li>
+</ul>
+</nav>
+</header>
+
+<section id="home">
+<h1>ケアループへようこそ</h1>
+</section>
+
+<section>
+<div class="share-section">
+<h2>📈 Careloop Share Value (2024–2026)</h2>
+<div id="sharePrice">₹ 350.00</div>
+<canvas id="shareChart"></canvas>
+</div>
+</section>
+
+<footer>
+<p>© 2026 ケアループ. 全著作権所有。</p>
+</footer>
+
 <script>
 
 /* ===============================
-   CONTROLLED MARKET SIMULATION
+   GENERATE HISTORICAL DATA FIRST
 ================================ */
 
-/*
-   Market Phases:
-   2024 - Gradual Growth
-   2025 - Strong Rally to ₹800
-   Late 2025 - Controlled Correction
-   2026 - Recovery around ₹358
-*/
-
-let sharePrice = 350; // Start January 2024
 let labels = [];
 let dataPoints = [];
+let sharePrice = 350;
 
-let currentMonth = 0;  // simulate month progression
-let tickPerMonth = 60; // 60 seconds = 1 month
-let tickCount = 0;
+// Preload 30 months (2024-2026 simulation)
+for(let i=0;i<30;i++){
+
+    let trend = 5;
+
+    // 2025 strong rally
+    if(i > 10 && i < 16){
+        trend = 25;
+    }
+
+    // 2025 correction gradual
+    if(i >=16 && i <22){
+        trend = -15;
+    }
+
+    // 2026 recovery
+    if(i >=22){
+        trend = 6;
+    }
+
+    let fluctuation = (Math.random() - 0.5) * 8;
+
+    sharePrice += trend + fluctuation;
+
+    if(sharePrice < 300){
+        sharePrice = 300 + Math.random()*5;
+    }
+
+    labels.push("M" + (i+1));
+    dataPoints.push(parseFloat(sharePrice.toFixed(2)));
+}
+
+/* ===============================
+   CREATE CHART (NOW IT SHOWS)
+================================ */
 
 const ctx = document.getElementById('shareChart').getContext('2d');
 
@@ -27,12 +146,12 @@ type: 'line',
 data: {
 labels: labels,
 datasets: [{
-label: 'CARELOOP NSE Share Price (2024-2026)',
+label: 'CARELOOP NSE Share Price',
 data: dataPoints,
 borderColor: '#2e7d32',
 backgroundColor: 'rgba(46,125,50,0.15)',
 fill: true,
-tension: 0.35
+tension: 0.4
 }]
 },
 options: {
@@ -47,57 +166,20 @@ beginAtZero: false
 });
 
 /* ===============================
-   EXACT CONTROLLED TREND FUNCTION
+   LIVE UPDATE PER SECOND
 ================================ */
 
-function getMonthlyTrend(monthIndex){
+setInterval(()=>{
 
-    // 2024 → gradual rise from 350 to 600
-    if(monthIndex < 12){
-        return 4; 
-    }
+    let trend = 2;
+    let fluctuation = (Math.random() - 0.5) * 4;
 
-    // Early 2025 strong rally to 800
-    if(monthIndex >= 12 && monthIndex < 18){
-        return 12;
-    }
+    sharePrice += trend/10 + fluctuation;
 
-    // Late 2025 controlled correction (not crash)
-    if(monthIndex >= 18 && monthIndex < 24){
-        return -8;
-    }
-
-    // 2026 recovery & stabilization near 358-420
-    return 3;
-}
-
-/* ===============================
-   REAL MARKET MOVEMENT PER SECOND
-================================ */
-
-function generateMarketMovement(){
-
-    tickCount++;
-
-    if(tickCount >= tickPerMonth){
-        currentMonth++;
-        tickCount = 0;
-    }
-
-    let trend = getMonthlyTrend(currentMonth);
-
-    // realistic small fluctuation like stock market
-    let minuteVolatility = (Math.random() - 0.5) * 3;
-
-    // controlled movement
-    sharePrice += (trend / 30) + minuteVolatility;
-
-    // prevent sudden crash
     if(sharePrice < 300){
         sharePrice = 300 + Math.random()*5;
     }
 
-    // prevent unrealistic spike above 820
     if(sharePrice > 820){
         sharePrice = 800 + Math.random()*5;
     }
@@ -105,21 +187,19 @@ function generateMarketMovement(){
     document.getElementById("sharePrice").textContent =
         "₹ " + sharePrice.toFixed(2);
 
-    let now = new Date();
-    let timeLabel = now.toLocaleTimeString();
-
-    labels.push(timeLabel);
+    labels.push(new Date().toLocaleTimeString());
     dataPoints.push(parseFloat(sharePrice.toFixed(2)));
 
-    if(labels.length > 90){
+    if(labels.length > 60){
         labels.shift();
         dataPoints.shift();
     }
 
     shareChart.update();
-}
 
-/* Start Live Simulation */
-setInterval(generateMarketMovement,1000);
+},1000);
 
 </script>
+
+</body>
+</html>
