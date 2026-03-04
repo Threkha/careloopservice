@@ -1,225 +1,125 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Careloop - Casual Healthcare Services</title>
-
-<!-- Required Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@3.3.0"></script>
-
-<style>
-*{
-    font-family:"Times New Roman", Times, serif !important;
-    box-sizing:border-box;
-}
-
-body{
-    margin:0;
-    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-    min-height:100vh;
-}
-
-header{
-    background:white;
-    padding:15px 40px;
-    position:sticky;
-    top:0;
-    z-index:100;
-}
-
-nav{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-nav ul{
-    list-style:none;
-    display:flex;
-    gap:20px;
-    align-items:center;
-}
-
-nav a{
-    text-decoration:none;
-    font-weight:bold;
-    color:#667eea;
-}
-
-section{
-    padding:60px 20px;
-    text-align:center;
-    color:white;
-}
-
-.share-section{
-    background:white;
-    padding:40px;
-    border-radius:20px;
-    max-width:1100px;
-    margin:40px auto;
-    color:black;
-}
-
-canvas{
-    max-height:500px;
-}
-
-footer{
-    background:black;
-    color:white;
-    text-align:center;
-    padding:20px;
-}
-</style>
-</head>
-<body>
-
-<header>
-<nav>
-<div><b>Careloop</b></div>
-<ul>
-<li><a href="#home">ホーム</a></li>
-<li><a href="#services">サービス</a></li>
-<li><a href="#contact">お問い合わせ</a></li>
-</ul>
-</nav>
-</header>
-
-<section id="home">
-<h1>ケアループへようこそ</h1>
-</section>
-
-<!-- SHARE MARKET SECTION -->
-<section>
-<div class="share-section">
-<h2>NSE: CARELOOP (Care Service Company)</h2>
-<p>Chart Period: 2024 - 2026</p>
-<canvas id="candleChart"></canvas>
-</div>
-</section>
-
-<footer>
-<p>© 2026 ケアループ. 全著作権所有。</p>
-</footer>
-
 <script>
 
-/* ==============================
-   CONTROLLED MARKET GENERATOR
-============================== */
+/* ===============================
+   CONTROLLED MARKET SIMULATION
+================================ */
 
-function generateHistoricalData(){
+/*
+   Market Phases:
+   2024 - Gradual Growth
+   2025 - Strong Rally to ₹800
+   Late 2025 - Controlled Correction
+   2026 - Recovery around ₹358
+*/
 
-    let data = [];
-    let price = 350; // Jan 2024 start
+let sharePrice = 350; // Start January 2024
+let labels = [];
+let dataPoints = [];
 
-    for(let i=0; i<30; i++){
+let currentMonth = 0;  // simulate month progression
+let tickPerMonth = 60; // 60 seconds = 1 month
+let tickCount = 0;
 
-        let trend = 6; // 2024 slow growth
+const ctx = document.getElementById('shareChart').getContext('2d');
 
-        if(i > 10 && i < 16){
-            trend = 35; // 2025 strong rally
-        }
-
-        if(i >=16 && i <22){
-            trend = -22; // gradual correction
-        }
-
-        if(i >=22){
-            trend = 8; // 2026 recovery
-        }
-
-        let open = price;
-        let close = open + (Math.random()*12 - 6) + trend;
-
-        let high = Math.max(open, close) + Math.random()*8;
-        let low = Math.min(open, close) - Math.random()*8;
-
-        price = close;
-
-        data.push({
-            x: new Date(2024, i, 1),
-            o: parseFloat(open.toFixed(2)),
-            h: parseFloat(high.toFixed(2)),
-            l: parseFloat(low.toFixed(2)),
-            c: parseFloat(close.toFixed(2))
-        });
-    }
-
-    return data;
+const shareChart = new Chart(ctx, {
+type: 'line',
+data: {
+labels: labels,
+datasets: [{
+label: 'CARELOOP NSE Share Price (2024-2026)',
+data: dataPoints,
+borderColor: '#2e7d32',
+backgroundColor: 'rgba(46,125,50,0.15)',
+fill: true,
+tension: 0.35
+}]
+},
+options: {
+responsive: true,
+animation: false,
+scales: {
+y: {
+beginAtZero: false
 }
-
-let candleData = generateHistoricalData();
-
-/* ==============================
-   CREATE CANDLESTICK CHART
-============================== */
-
-const ctx = document.getElementById("candleChart").getContext("2d");
-
-const chart = new Chart(ctx, {
-    type: "candlestick",
-    data: {
-        datasets: [{
-            label: "CARELOOP Share Price",
-            data: candleData,
-            color: {
-                up: "#2e7d32",
-                down: "#c62828",
-                unchanged: "#999"
-            }
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            x: {
-                type: "time",
-                time: {
-                    unit: "month"
-                }
-            },
-            y: {
-                beginAtZero: false
-            }
-        }
-    }
+}
+}
 });
 
-/* ==============================
-   LIVE SMALL REALISTIC MOVEMENT
-============================== */
+/* ===============================
+   EXACT CONTROLLED TREND FUNCTION
+================================ */
 
-setInterval(()=>{
+function getMonthlyTrend(monthIndex){
 
-    let last = candleData[candleData.length-1];
-    let lastClose = last.c;
-
-    let movement = (Math.random() - 0.5) * 5; // small fluctuation only
-
-    let newCandle = {
-        x: new Date(),
-        o: lastClose,
-        h: lastClose + Math.random()*4,
-        l: lastClose - Math.random()*4,
-        c: parseFloat((lastClose + movement).toFixed(2))
-    };
-
-    candleData.push(newCandle);
-
-    if(candleData.length > 40){
-        candleData.shift();
+    // 2024 → gradual rise from 350 to 600
+    if(monthIndex < 12){
+        return 4; 
     }
 
-    chart.update();
+    // Early 2025 strong rally to 800
+    if(monthIndex >= 12 && monthIndex < 18){
+        return 12;
+    }
 
-},1000);
+    // Late 2025 controlled correction (not crash)
+    if(monthIndex >= 18 && monthIndex < 24){
+        return -8;
+    }
+
+    // 2026 recovery & stabilization near 358-420
+    return 3;
+}
+
+/* ===============================
+   REAL MARKET MOVEMENT PER SECOND
+================================ */
+
+function generateMarketMovement(){
+
+    tickCount++;
+
+    if(tickCount >= tickPerMonth){
+        currentMonth++;
+        tickCount = 0;
+    }
+
+    let trend = getMonthlyTrend(currentMonth);
+
+    // realistic small fluctuation like stock market
+    let minuteVolatility = (Math.random() - 0.5) * 3;
+
+    // controlled movement
+    sharePrice += (trend / 30) + minuteVolatility;
+
+    // prevent sudden crash
+    if(sharePrice < 300){
+        sharePrice = 300 + Math.random()*5;
+    }
+
+    // prevent unrealistic spike above 820
+    if(sharePrice > 820){
+        sharePrice = 800 + Math.random()*5;
+    }
+
+    document.getElementById("sharePrice").textContent =
+        "₹ " + sharePrice.toFixed(2);
+
+    let now = new Date();
+    let timeLabel = now.toLocaleTimeString();
+
+    labels.push(timeLabel);
+    dataPoints.push(parseFloat(sharePrice.toFixed(2)));
+
+    if(labels.length > 90){
+        labels.shift();
+        dataPoints.shift();
+    }
+
+    shareChart.update();
+}
+
+/* Start Live Simulation */
+setInterval(generateMarketMovement,1000);
 
 </script>
-
-</body>
-</html>
