@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Careloop - Casual Healthcare Services</title>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
 
 <style>
 *{
@@ -52,39 +54,13 @@ section{
     color:white;
 }
 
-.services{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:30px;
-    margin-top:40px;
-}
-
-.service-card{
-    background:white;
-    padding:30px;
-    border-radius:15px;
-    cursor:pointer;
-    color:#333;
-    transition:0.3s;
-}
-
-.service-card:hover{
-    transform:translateY(-8px);
-}
-
 .share-section{
     background:white;
     padding:40px;
     border-radius:20px;
-    max-width:900px;
+    max-width:1000px;
     margin:40px auto;
     color:black;
-}
-
-#sharePrice{
-    font-size:28px;
-    font-weight:bold;
-    margin-bottom:20px;
 }
 
 footer{
@@ -112,27 +88,12 @@ footer{
 <h1>ケアループへようこそ</h1>
 </section>
 
-<!-- ===== UPDATED REALISTIC SHARE MARKET SECTION ===== -->
+<!-- ===== NSE STYLE SHARE MARKET SECTION ===== -->
 <section>
 <div class="share-section">
-<h2>📈 Careloop Share Value (Live Market Simulation)</h2>
-<div id="sharePrice">₹ 350.00</div>
-<canvas id="shareChart"></canvas>
-</div>
-</section>
-<!-- ===== END SHARE SECTION ===== -->
-
-<section id="services">
-<div class="services">
-<div class="service-card">
-<h3>🚚 訪問診療</h3>
-</div>
-<div class="service-card">
-<h3>👨‍⚕️ 医師相談</h3>
-</div>
-<div class="service-card">
-<h3>💪 理学療法</h3>
-</div>
+<h2>NSE: CARELOOP (Care Service Company)</h2>
+<p>Chart Period: 2024 - 2026</p>
+<canvas id="candleChart"></canvas>
 </div>
 </section>
 
@@ -143,74 +104,121 @@ footer{
 <script>
 
 /* ===============================
-   REALISTIC SHARE MARKET ENGINE
+   REALISTIC MONTHLY DATA (2024-2026)
 ================================ */
 
-let sharePrice = 350; // STARTING PRICE
-let labels = [];
-let dataPoints = [];
+function generateMonthlyData() {
 
-/* Monthly trend simulation from Jan 2024 */
-let monthlyTrend = 0.8; // slow growth bias
-let volatility = 1.2;   // small fluctuation
+    let data = [];
+    let price = 350; // START JAN 2024
 
-const ctx = document.getElementById('shareChart').getContext('2d');
+    let months = 30; // Jan 2024 → Jun 2026 approx
 
-const shareChart = new Chart(ctx, {
-type: 'line',
-data: {
-labels: labels,
-datasets: [{
-label: 'Careloop NSE Share Price',
-data: dataPoints,
-borderColor: '#2e7d32',
-backgroundColor: 'rgba(46,125,50,0.1)',
-fill: true,
-tension: 0.4
-}]
-},
-options: {
-responsive: true,
-animation: false,
-scales: {
-y: {
-beginAtZero: false
+    for(let i=0;i<months;i++){
+
+        // gradual trend
+        let growthBias = 2; 
+        let volatility = 10;
+
+        // 2025 peak simulation
+        if(i > 10 && i < 16){
+            growthBias = 20;
+        }
+
+        // post peak correction gradual
+        if(i >=16 && i <22){
+            growthBias = -15;
+        }
+
+        // 2026 recovery
+        if(i >=22){
+            growthBias = 5;
+        }
+
+        let open = price;
+        let close = open + (Math.random()*volatility - volatility/2) + growthBias;
+        let high = Math.max(open, close) + Math.random()*10;
+        let low = Math.min(open, close) - Math.random()*10;
+
+        price = close;
+
+        data.push({
+            x: new Date(2024, i, 1),
+            o: parseFloat(open.toFixed(2)),
+            h: parseFloat(high.toFixed(2)),
+            l: parseFloat(low.toFixed(2)),
+            c: parseFloat(close.toFixed(2))
+        });
+    }
+
+    return data;
 }
-}
-}
+
+let candleData = generateMonthlyData();
+
+/* ===============================
+   CHART CONFIGURATION
+================================ */
+
+const ctx = document.getElementById('candleChart').getContext('2d');
+
+const chart = new Chart(ctx, {
+    type: 'candlestick',
+    data: {
+        datasets: [{
+            label: 'CARELOOP Share Price',
+            data: candleData,
+            color: {
+                up: '#2e7d32',
+                down: '#c62828',
+                unchanged: '#999'
+            }
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'time',
+                time: {
+                    unit: 'month'
+                }
+            },
+            y: {
+                beginAtZero: false
+            }
+        }
+    }
 });
 
-/* Generate gradual realistic movement */
-function generateMarketMovement(){
+/* ===============================
+   LIVE REAL TIME MOVEMENT (per second)
+================================ */
 
-    // small realistic fluctuation
-    let randomFluctuation = (Math.random() - 0.5) * volatility;
+setInterval(() => {
 
-    // gradual monthly growth logic
-    sharePrice += randomFluctuation + (monthlyTrend / 30);
+    let last = candleData[candleData.length - 1];
+    let lastClose = last.c;
 
-    // Prevent sudden crash
-    if(sharePrice < 300){
-        sharePrice = 300 + Math.random()*5;
+    let smallMove = (Math.random() - 0.5) * 5; // small fluctuation only
+
+    let newCandle = {
+        x: new Date(),
+        o: lastClose,
+        h: lastClose + Math.random()*5,
+        l: lastClose - Math.random()*5,
+        c: parseFloat((lastClose + smallMove).toFixed(2))
+    };
+
+    candleData.push(newCandle);
+
+    if(candleData.length > 40){
+        candleData.shift();
     }
 
-    document.getElementById("sharePrice").textContent =
-        "₹ " + sharePrice.toFixed(2);
+    chart.update();
 
-    let time = new Date().toLocaleTimeString();
-    labels.push(time);
-    dataPoints.push(sharePrice);
-
-    if(labels.length > 60){
-        labels.shift();
-        dataPoints.shift();
-    }
-
-    shareChart.update();
-}
-
-/* Simulate real market (per second update) */
-setInterval(generateMarketMovement, 1000);
+}, 1000);
 
 </script>
 
