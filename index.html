@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Careloop - Casual Healthcare Services</title>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+<!-- Required Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@3.3.0"></script>
 
 <style>
 *{
@@ -58,9 +59,13 @@ section{
     background:white;
     padding:40px;
     border-radius:20px;
-    max-width:1000px;
+    max-width:1100px;
     margin:40px auto;
     color:black;
+}
+
+canvas{
+    max-height:500px;
 }
 
 footer{
@@ -88,7 +93,7 @@ footer{
 <h1>ケアループへようこそ</h1>
 </section>
 
-<!-- ===== NSE STYLE SHARE MARKET SECTION ===== -->
+<!-- SHARE MARKET SECTION -->
 <section>
 <div class="share-section">
 <h2>NSE: CARELOOP (Care Service Company)</h2>
@@ -103,42 +108,36 @@ footer{
 
 <script>
 
-/* ===============================
-   REALISTIC MONTHLY DATA (2024-2026)
-================================ */
+/* ==============================
+   CONTROLLED MARKET GENERATOR
+============================== */
 
-function generateMonthlyData() {
+function generateHistoricalData(){
 
     let data = [];
-    let price = 350; // START JAN 2024
+    let price = 350; // Jan 2024 start
 
-    let months = 30; // Jan 2024 → Jun 2026 approx
+    for(let i=0; i<30; i++){
 
-    for(let i=0;i<months;i++){
+        let trend = 6; // 2024 slow growth
 
-        // gradual trend
-        let growthBias = 2; 
-        let volatility = 10;
-
-        // 2025 peak simulation
         if(i > 10 && i < 16){
-            growthBias = 20;
+            trend = 35; // 2025 strong rally
         }
 
-        // post peak correction gradual
         if(i >=16 && i <22){
-            growthBias = -15;
+            trend = -22; // gradual correction
         }
 
-        // 2026 recovery
         if(i >=22){
-            growthBias = 5;
+            trend = 8; // 2026 recovery
         }
 
         let open = price;
-        let close = open + (Math.random()*volatility - volatility/2) + growthBias;
-        let high = Math.max(open, close) + Math.random()*10;
-        let low = Math.min(open, close) - Math.random()*10;
+        let close = open + (Math.random()*12 - 6) + trend;
+
+        let high = Math.max(open, close) + Math.random()*8;
+        let low = Math.min(open, close) - Math.random()*8;
 
         price = close;
 
@@ -154,24 +153,24 @@ function generateMonthlyData() {
     return data;
 }
 
-let candleData = generateMonthlyData();
+let candleData = generateHistoricalData();
 
-/* ===============================
-   CHART CONFIGURATION
-================================ */
+/* ==============================
+   CREATE CANDLESTICK CHART
+============================== */
 
-const ctx = document.getElementById('candleChart').getContext('2d');
+const ctx = document.getElementById("candleChart").getContext("2d");
 
 const chart = new Chart(ctx, {
-    type: 'candlestick',
+    type: "candlestick",
     data: {
         datasets: [{
-            label: 'CARELOOP Share Price',
+            label: "CARELOOP Share Price",
             data: candleData,
             color: {
-                up: '#2e7d32',
-                down: '#c62828',
-                unchanged: '#999'
+                up: "#2e7d32",
+                down: "#c62828",
+                unchanged: "#999"
             }
         }]
     },
@@ -179,9 +178,9 @@ const chart = new Chart(ctx, {
         responsive: true,
         scales: {
             x: {
-                type: 'time',
+                type: "time",
                 time: {
-                    unit: 'month'
+                    unit: "month"
                 }
             },
             y: {
@@ -191,23 +190,23 @@ const chart = new Chart(ctx, {
     }
 });
 
-/* ===============================
-   LIVE REAL TIME MOVEMENT (per second)
-================================ */
+/* ==============================
+   LIVE SMALL REALISTIC MOVEMENT
+============================== */
 
-setInterval(() => {
+setInterval(()=>{
 
-    let last = candleData[candleData.length - 1];
+    let last = candleData[candleData.length-1];
     let lastClose = last.c;
 
-    let smallMove = (Math.random() - 0.5) * 5; // small fluctuation only
+    let movement = (Math.random() - 0.5) * 5; // small fluctuation only
 
     let newCandle = {
         x: new Date(),
         o: lastClose,
-        h: lastClose + Math.random()*5,
-        l: lastClose - Math.random()*5,
-        c: parseFloat((lastClose + smallMove).toFixed(2))
+        h: lastClose + Math.random()*4,
+        l: lastClose - Math.random()*4,
+        c: parseFloat((lastClose + movement).toFixed(2))
     };
 
     candleData.push(newCandle);
@@ -218,7 +217,7 @@ setInterval(() => {
 
     chart.update();
 
-}, 1000);
+},1000);
 
 </script>
 
